@@ -51,6 +51,13 @@ def get_bbox_polygon(ebb: inkex.transforms.BoundingBox) -> shapely.Polygon:
 
 
 class Shalector(inkex.EffectExtension):
+
+    def __init__(self):
+        super().__init__()
+        self._selector_element = None
+        self._selector_bbox = None
+        self._selector_polygon = None
+
     def add_arguments(self, pars: argparse.ArgumentParser):
         pars.add_argument(
             "--shalector_notebook",
@@ -61,10 +68,11 @@ class Shalector(inkex.EffectExtension):
         pars.add_argument(
             "--selectable-mode", default="bbox", choices=("bbox", "shape")
         )
+        pars.add_argument(
+            "--selection-method", default="group", choices=("group", "class")
+        )
 
-    def _should_select(
-        self, selector_polygon: "shapely.Polygon", element: elements.ShapeElement
-    ) -> bool:
+    def _should_select(self, element: elements.ShapeElement) -> bool:
         if self.options.selectable_mode == "shape" and element.tag_name == "path":
             # TODO: maybe try the BBox based predicate before doing complicated computation to get the actual path
             # This would:
@@ -87,67 +95,95 @@ class Shalector(inkex.EffectExtension):
                 return False
             element_polygon = get_bbox_polygon(ebb)
 
-        predicate = selector_polygon.covers
+        predicate = self.selector_polygon.covers
         if self.options.selector_mode == "intersecting":
-            predicate = selector_polygon.intersects
+            predicate = self.selector_polygon.intersects
 
         return predicate(element_polygon)
 
-    def effect(self):
-        if len(self.svg.selection) != 1:
-            inkex.errormsg("Select a single shape to use as selector")
-            raise inkex.AbortExtension
-
-        selector_element: elements.BaseElement = self.svg.selection.first()
-        # self.debug(f"Using element '{selector_element.get_id()}({selector_element})'")
-
-        if not isinstance(selector_element, elements.ShapeElement):
-            inkex.errormsg("Selected element must be a path")
+    def _group_selection(self, selection: typing.Sequence[elements.BaseElement]):
+        # Build a group to store all the selected elements
+        selection_group = inkex.elements.Group(
+            *selection, attrib=dict(id=f"{self.selector_element.get_id()}_selection")
+        )
+        selector_ancestor = self.selector_element.ancestors().first()
+        if selector_ancestor is None:
+            inkex.errormsg("Unable to get selector ancestor")
             raise inkex.AbortExtension()
+        selector_ancestor.add(selection_group)
 
-        selector_bb = selector_element.bounding_box()
-        if selector_bb is None:
-            inkex.errormsg("Unable to get selector bounding box")
-            raise inkex.AbortExtension()
+    def _class_selection(self, selection: typing.Sequence[elements.BaseElement]):
+        class_name = f"{self.selector_element.get_id()}_selection"
 
-        selector_transform = selector_element.composed_transform()
-        selector_polygon = shapely.Polygon(
-            [
-                selector_transform.apply_to_point(p)
-                for p in selector_element.path.control_points
-            ]
+        self.svg.stylesheet.add(
+            f".{class_name}",
+            {}
         )
 
+        for elem in selection:
+            elem_classes = inkex.styles.Classes(elem.attrib.get("class"))
+            elem_classes.append(class_name)
+            elem.attrib["class"] = " ".join(elem_classes)
+
+    @property
+    def selector_element(self) -> elements.ShapeElement:
+        if self._selector_element is None:
+            if len(self.svg.selection) != 1:
+                inkex.errormsg("Select a single shape to use as selector")
+                raise inkex.AbortExtension
+            selector_element: elements.BaseElement = self.svg.selection.first()
+            if not isinstance(selector_element, elements.ShapeElement):
+                inkex.errormsg("Selected element must be a path")
+                raise inkex.AbortExtension()
+            self._selector_element = selector_element
+        return self._selector_element
+
+    @property
+    def selector_bbox(self) -> inkex.transforms.BoundingBox:
+        if self._selector_bbox is None:
+            selector_bb = self.selector_element.bounding_box()
+            if selector_bb is None:
+                inkex.errormsg("Unable to get selector bounding box")
+                raise inkex.AbortExtension()
+            self._selector_bbox = selector_bb
+        return self._selector_bbox
+
+    @property
+    def selector_polygon(self) -> shapely.Polygon:
+        if self._selector_polygon is None:
+            selector_transform = self.selector_element.composed_transform()
+            self._selector_polygon = shapely.Polygon(
+                [
+                    selector_transform.apply_to_point(p)
+                    for p in self.selector_element.path.control_points
+                ]
+            )
+        return self._selector_polygon
+
+    def effect(self):
         # Get all sibling objects matching criterion
         selection_list = [
             e
             for e in iter(
                 typing.cast(
                     typing.Iterable[elements.BaseElement],
-                    selector_element.ancestors().first(),
+                    self.selector_element.ancestors().first(),
                 )
             )
             if (
-                e.get_id()
-                != selector_element.get_id()  # Should not be the selector object
+                e != self.selector_element  # Should not be the selector object
                 and isinstance(e, elements.ShapeElement)  # Should be visible
-                and self._should_select(
-                    selector_polygon, e
-                )  # Is the element valid for the selection
+                and self._should_select(e)  # Is the element valid for the selection
             )
         ]
         self.debug(f"Polygon selection: {[e.get_id() for e in selection_list]}")
 
-        # Build a group to store all the selected elements
-        selection_group = inkex.elements.Group(
-            *selection_list, attrib=dict(id=f"{selector_element.get_id()}_selection")
-        )
-        selector_ancestor = selector_element.ancestors().first()
-        if selector_ancestor is None:
-            inkex.errormsg("Unable to get selector ancestor")
-            raise inkex.AbortExtension()
-        selector_ancestor.add(selection_group)
-        selector_element.delete()
+        if self.options.selection_method == "class":
+            self._class_selection(selection_list)
+        else:
+            self._group_selection(selection_list)
+
+        self.selector_element.delete()
         return True
 
 
