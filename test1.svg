@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="48"
+   height="48"
+   viewBox="0 0 12.7 12.7"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.1 (9c6d41e, 2022-07-14)"
+   sodipodi:docname="test1.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="3.5267527"
+     inkscape:cx="10.349464"
+     inkscape:cy="16.72927"
+     inkscape:window-width="1512"
+     inkscape:window-height="916"
+     inkscape:window-x="0"
+     inkscape:window-y="38"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Calque 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       sodipodi:type="star"
+       style="fill:none;stroke:#000000;stroke-width:0.264583;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
+       id="selector"
+       inkscape:flatsided="false"
+       sodipodi:sides="5"
+       sodipodi:cx="0.22506538"
+       sodipodi:cy="12.603662"
+       sodipodi:r1="5.2520614"
+       sodipodi:r2="2.7835929"
+       sodipodi:arg1="-1.5707963"
+       sodipodi:arg2="-0.9424778"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m 0.22506552,7.3516002 1.63615468,3.0000878 3.3588524,0.628997 -2.347653,2.483154 0.4397299,3.38883 -3.08708411,-1.465415 -3.08708429,1.465414 0.4397301,-3.388829 -2.347653,-2.483154 3.3588523,-0.628997 z"
+       inkscape:transform-center-y="-0.50152743"
+       transform="translate(6.1249346,-5.752137)" />
+    <circle
+       style="fill:#000000;stroke:none;stroke-width:2.11667;stroke-linecap:round;stroke-linejoin:round"
+       id="src"
+       cx="-10"
+       cy="-10"
+       r="1" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#src"
+       id="outside"
+       transform="translate(11,9)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#src"
+       id="intersectHull"
+       transform="translate(13.529167,13.529167)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#src"
+       id="inShape"
+       transform="translate(16.531541,17.214766)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#src"
+       id="intersectShape"
+       transform="translate(17.772034,13.116668)" />
+    <use
+       x="0"
+       y="0"
+       xlink:href="#src"
+       id="intersectBbox"
+       transform="translate(11.529167,11.529167)" />
+  </g>
+</svg>

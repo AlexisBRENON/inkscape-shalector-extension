@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<inkscape-extension xmlns="http://www.inkscape.org/namespace/inkscape/extension">
+
+    <name>Shalector</name>
+    <id>com.github.AlexisBRENON.inkscape-shalector-extension</id>
+
+    <param name="shalector_notebook" type="notebook">
+        <page name="page_settings" gui-text="Settings">
+            <param name="selector-mode" type="optiongroup" appearance="radio" gui-text="Selector mode:">
+                <option value="covering">Covering</option>
+                <option value="intersecting">Intersecting</option>
+            </param>
+            <param name="selectable-mode" type="optiongroup" appearance="radio" gui-text="Selectable mode:">
+                <option value="bbox">Bounding box</option>
+                <option value="shape">Shape</option>
+            </param>
+        </page>
+
+        <page name="page_about" gui-text="About">
+            <label>
+                Shalector
+                Select elements from a custom-shaped selector.
+            </label>
+            <label appearance="url">https://github.com/AlexisBRENON</label>
+        </page>
+    </param>
+
+    <effect needs-document="true" needs-live-preview="false">
+        <effects-menu hidden="false">
+            <submenu name="Arrange" />
+        </effects-menu>
+        <menu-tip>Select elements from a custom-shaped selector.</menu-tip>
+        <object-type>path</object-type>
+    </effect>
+
+    <script>
+        <command location="inx" interpreter="python">shalector.py</command>
+    </script>
+
+</inkscape-extension>

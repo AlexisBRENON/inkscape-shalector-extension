@@ -1,0 +1,14 @@
+{
+    "id": "com.github.AlexisBRENON.inkscape-shalector-extension",
+    "author": "Alexis BRENON",
+    "name": "Shalector",
+    "licence": "MIT",
+    "summary": "Select elements from a custom-shaped selector",
+    "files": [
+        "com.github.AlexisBRENON.inkscape-shalector-extension/shalector/",
+        "com.github.AlexisBRENON.inkscape-shalector-extension/shalector/LICENSE",
+        "com.github.AlexisBRENON.inkscape-shalector-extension/shalector/README.md",
+        "com.github.AlexisBRENON.inkscape-shalector-extension/shalector/shalector.inx",
+        "com.github.AlexisBRENON.inkscape-shalector-extension/shalector/shalector.py"
+    ]
+}
