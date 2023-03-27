@@ -46,12 +46,27 @@ except ImportError:
         inkex.debug("Shapely successfully installed")
 
 
-def get_bbox_polygon(ebb: inkex.transforms.BoundingBox) -> shapely.Polygon:
+def get_bbox_polygon(element: elements.ShapeElement) -> shapely.Polygon:
+    ebb = element.bounding_box()
+    if ebb is None:
+        raise ValueError(ebb)
     return shapely.Polygon.from_bounds(ebb.left, ebb.top, ebb.right, ebb.bottom)
 
 
-class Shalector(inkex.EffectExtension):
+def get_shape_polygon(element: elements.ShapeElement) -> shapely.Polygon:
+    if element.tag_name == "path":
+        element_transform = element.composed_transform()
+        return shapely.Polygon(
+            [element_transform.apply_to_point(p) for p in element.path.control_points]
+        )
+    # TODO: Add logic for rect, use, etc.
+    inkex.utils.debug(
+        f"Warning: the element {element.get_id()} is not a path. Falling back on BBox polygon"
+    )
+    return get_bbox_polygon(element)
 
+
+class Shalector(inkex.EffectExtension):
     def __init__(self):
         super().__init__()
         self._selector_element = None
@@ -73,33 +88,27 @@ class Shalector(inkex.EffectExtension):
         )
 
     def _should_select(self, element: elements.ShapeElement) -> bool:
-        if self.options.selectable_mode == "shape" and element.tag_name == "path":
-            # TODO: maybe try the BBox based predicate before doing complicated computation to get the actual path
-            # This would:
-            #   1. Avoid too much warnings for all non-path objects with bounding box not validating predicate
-            #   2. Speed up process (warning: not covering bbox does not mean we not cover the shape)
-            element_transform = element.composed_transform()
-            element_polygon = shapely.Polygon(
-                [
-                    element_transform.apply_to_point(p)
-                    for p in element.path.control_points
-                ]
+        shapely.prepare(self.selector_polygon)
+
+        if self.options.selector_mode == "covering":
+            return self.selector_polygon.covers(
+                (bbox_polygon := get_bbox_polygon(element))
+            ) or (
+                self.selector_polygon.intersects(bbox_polygon)
+                and (
+                    self.selector_polygon.covers(get_shape_polygon(element))
+                    if self.options.selectable_mode == "shape"
+                    else True
+                )
+            )
+        elif self.options.selector_mode == "intersecting":
+            return self.selector_polygon.intersects(get_bbox_polygon(element)) and (
+                self.selector_polygon.intersects(get_shape_polygon(element))
+                if self.options.selectable_mode == "shape"
+                else True
             )
         else:
-            if self.options.selectable_mode != "bbox":
-                self.debug(
-                    f"Warning: the element {element.get_id()} is not a path. Falling back on BBox selection"
-                )
-            ebb = element.bounding_box()
-            if ebb is None:
-                return False
-            element_polygon = get_bbox_polygon(ebb)
-
-        predicate = self.selector_polygon.covers
-        if self.options.selector_mode == "intersecting":
-            predicate = self.selector_polygon.intersects
-
-        return predicate(element_polygon)
+            raise inkex.AbortExtension("Unknown selector mode")
 
     def _group_selection(self, selection: typing.Sequence[elements.BaseElement]):
         # Build a group to store all the selected elements
@@ -115,10 +124,7 @@ class Shalector(inkex.EffectExtension):
     def _class_selection(self, selection: typing.Sequence[elements.BaseElement]):
         class_name = f"{self.selector_element.get_id()}_selection"
 
-        self.svg.stylesheet.add(
-            f".{class_name}",
-            {}
-        )
+        self.svg.stylesheet.add(f".{class_name}", {})
 
         for elem in selection:
             elem_classes = inkex.styles.Classes(elem.attrib.get("class"))
