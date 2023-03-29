@@ -18,7 +18,6 @@ jobs:
       - name: Package
         run: |
           tar -cvJf ${ASSET_NAME} --directory src shalector
-          ls .
       - name: Publish
         uses: softprops/action-gh-release@v0.1.15
         with:
