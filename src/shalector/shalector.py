@@ -28,7 +28,7 @@ except ImportError:
         )
         import subprocess
 
-        subprocess.check_call(
+        install_output = subprocess.check_output(
             [
                 sys.executable,
                 "-m",
@@ -41,9 +41,23 @@ except ImportError:
                 "shapely",
             ]
         )
-        import shapely
+        try:
+            import shapely
+        except ImportError:
+            inkex.utils.errormsg(install_output)
+            raise RuntimeError(
+                "\n".join(
+                    [
+                        install_output.decode(),
+                        str(sys.path),
+                        subprocess.check_output(
+                            ["ls", "-lR", extension_prefix]
+                        ).decode(),
+                    ]
+                )
+            )
 
-        inkex.debug("Shapely successfully installed")
+        inkex.utils.debug("Shapely successfully installed")
 
 
 def get_bbox_polygon(element: elements.ShapeElement) -> shapely.Polygon:
