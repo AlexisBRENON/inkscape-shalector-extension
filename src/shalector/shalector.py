@@ -23,7 +23,7 @@ except ImportError:
     try:
         import shapely
     except ImportError:
-        inkex.debug(
+        inkex.utils.debug(
             f"Shapely not available. Trying to install it to {extension_prefix}"
         )
         import subprocess
@@ -45,17 +45,7 @@ except ImportError:
             import shapely
         except ImportError:
             inkex.utils.errormsg(install_output)
-            raise RuntimeError(
-                "\n".join(
-                    [
-                        install_output.decode(),
-                        str(sys.path),
-                        subprocess.check_output(
-                            ["ls", "-lR", extension_prefix]
-                        ).decode(),
-                    ]
-                )
-            )
+            raise RuntimeError(install_output.decode())
 
         inkex.utils.debug("Shapely successfully installed")
 

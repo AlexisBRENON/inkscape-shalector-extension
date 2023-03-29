@@ -21,7 +21,7 @@ jobs:
         run: |
           sudo apt-get install libgirepository1.0-dev
           python -m pip install --upgrade pip wheel
-          pip install black inkex
+          pip install black inkex shapely
       - name: Linting
         run: |
           python -m black --check .
