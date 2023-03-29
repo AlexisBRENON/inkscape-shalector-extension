@@ -93,22 +93,26 @@ class Shalector(inkex.EffectExtension):
         if self.options.selectable_mode == "bbox":
             ebb = get_bbox_polygon(element)
             predicate = (
-                self.selector_polygon.covers if self.options.selector_mode == "covering"
+                self.selector_polygon.covers
+                if self.options.selector_mode == "covering"
                 else self.selector_polygon.intersects
             )
             return predicate(ebb)
 
-        elif self.options.selector_mode == "interecting" and self.options.selectable_mode == "shape":
-            return (
-                self.selector_polygon.intersects(get_bbox_polygon(element)) and
-                self.selector_polygon.intersects(get_shape_polygon(element))
-            )
-        elif self.options.selector_mode == "covering" and self.options.selectable_mode == "shape":
-            return (
-                self.selector_polygon.covers(get_bbox_polygon(element)) or (
-                    self.selector_polygon.intersects(get_bbox_polygon(element)) and
-                    self.selector_polygon.covers(get_shape_polygon(element))
-                )
+        elif (
+            self.options.selector_mode == "interecting"
+            and self.options.selectable_mode == "shape"
+        ):
+            return self.selector_polygon.intersects(
+                get_bbox_polygon(element)
+            ) and self.selector_polygon.intersects(get_shape_polygon(element))
+        elif (
+            self.options.selector_mode == "covering"
+            and self.options.selectable_mode == "shape"
+        ):
+            return self.selector_polygon.covers(get_bbox_polygon(element)) or (
+                self.selector_polygon.intersects(get_bbox_polygon(element))
+                and self.selector_polygon.covers(get_shape_polygon(element))
             )
         raise inkex.AbortExtension("Unknown selector mode")
 
