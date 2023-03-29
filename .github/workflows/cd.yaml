@@ -1,0 +1,23 @@
+name: Continuous Delivery
+
+on:
+  workflow_dispatch:
+  release:
+    types:
+      - "released"
+
+env:
+  ASSET_NAME: inkscape-shalector-extension-${${GITHUB_REF#"refs/tags/"}#v}.tar.xz
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Package
+        run: |
+          tar -cvjf ${ASSET_NAME} --cd src shalector
+      - name: Publish
+        uses: softprops/action-gh-release@v0.1.15
+        with:
+          files: ${ASSET_NAME}
