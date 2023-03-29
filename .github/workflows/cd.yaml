@@ -7,7 +7,7 @@ on:
       - "released"
 
 env:
-  ASSET_NAME: inkscape-shalector-extension-${${GITHUB_REF#"refs/tags/"}#v}.tar.xz
+  ASSET_NAME: inkscape-shalector-extension-${{ github.ref_name }}.tar.xz
 
 jobs:
   build:
@@ -16,8 +16,8 @@ jobs:
       - uses: actions/checkout@v3
       - name: Package
         run: |
-          tar -cvjf ${ASSET_NAME} --cd src shalector
+          tar -cvJf ${ASSET_NAME} --directory src shalector
       - name: Publish
         uses: softprops/action-gh-release@v0.1.15
         with:
-          files: ${ASSET_NAME}
+          files: ${{ env.ASSET_NAME }}
