@@ -49,7 +49,7 @@ except ImportError:
 def get_bbox_polygon(element: elements.ShapeElement) -> shapely.Polygon:
     ebb = element.bounding_box()
     if ebb is None:
-        raise ValueError(ebb)
+        raise ValueError(element, element.get_id())
     return shapely.Polygon.from_bounds(ebb.left, ebb.top, ebb.right, ebb.bottom)
 
 
@@ -90,25 +90,27 @@ class Shalector(inkex.EffectExtension):
     def _should_select(self, element: elements.ShapeElement) -> bool:
         shapely.prepare(self.selector_polygon)
 
-        if self.options.selector_mode == "covering":
-            return self.selector_polygon.covers(
-                (bbox_polygon := get_bbox_polygon(element))
-            ) or (
-                self.selector_polygon.intersects(bbox_polygon)
-                and (
+        if self.options.selectable_mode == "bbox":
+            ebb = get_bbox_polygon(element)
+            predicate = (
+                self.selector_polygon.covers if self.options.selector_mode == "covering"
+                else self.selector_polygon.intersects
+            )
+            return predicate(ebb)
+
+        elif self.options.selector_mode == "interecting" and self.options.selectable_mode == "shape":
+            return (
+                self.selector_polygon.intersects(get_bbox_polygon(element)) and
+                self.selector_polygon.intersects(get_shape_polygon(element))
+            )
+        elif self.options.selector_mode == "covering" and self.options.selectable_mode == "shape":
+            return (
+                self.selector_polygon.covers(get_bbox_polygon(element)) or (
+                    self.selector_polygon.intersects(get_bbox_polygon(element)) and
                     self.selector_polygon.covers(get_shape_polygon(element))
-                    if self.options.selectable_mode == "shape"
-                    else True
                 )
             )
-        elif self.options.selector_mode == "intersecting":
-            return self.selector_polygon.intersects(get_bbox_polygon(element)) and (
-                self.selector_polygon.intersects(get_shape_polygon(element))
-                if self.options.selectable_mode == "shape"
-                else True
-            )
-        else:
-            raise inkex.AbortExtension("Unknown selector mode")
+        raise inkex.AbortExtension("Unknown selector mode")
 
     def _group_selection(self, selection: typing.Sequence[elements.BaseElement]):
         # Build a group to store all the selected elements
