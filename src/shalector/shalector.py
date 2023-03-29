@@ -23,12 +23,12 @@ except ImportError:
     try:
         import shapely
     except ImportError:
-        inkex.debug(
+        inkex.utils.debug(
             f"Shapely not available. Trying to install it to {extension_prefix}"
         )
         import subprocess
 
-        subprocess.check_call(
+        install_output = subprocess.check_output(
             [
                 sys.executable,
                 "-m",
@@ -41,9 +41,13 @@ except ImportError:
                 "shapely",
             ]
         )
-        import shapely
+        try:
+            import shapely
+        except ImportError:
+            inkex.utils.errormsg(install_output)
+            raise RuntimeError(install_output.decode())
 
-        inkex.debug("Shapely successfully installed")
+        inkex.utils.debug("Shapely successfully installed")
 
 
 def get_bbox_polygon(element: elements.ShapeElement) -> shapely.Polygon:
